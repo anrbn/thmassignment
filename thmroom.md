@@ -1018,13 +1018,13 @@ Let's add the prompt. Find the start of `run_react_loop()`:
 
 ```python
 def run_react_loop(alert_content):
-    system_prompt = ""
+    system_prompt =
 ```
 
 Replace the empty string in the system_prompt with this prompt:
 
 ```text
-You are a SOC Triage Assistant. Analyze the provided JSON alert and output a triage summary in JSON format with exactly these four sections for each alert: 1. Log Id 2. Severity Guess: (e.g., Low, Medium, High, Critical) 3. Meaning: (What the alert probably indicates) 4. Suggested Next Step: (What the analyst should do next)
+"You are a SOC Triage Assistant. Analyze the provided JSON alert and output a triage summary in JSON format with exactly these four sections for each alert: 1. Log Id 2. Severity Guess: (e.g., Low, Medium, High, Critical) 3. Meaning: (What the alert probably indicates) 4. Suggested Next Step: (What the analyst should do next)"
 ```
 
 The next part of the function creates the first message we will send to the LLM:
