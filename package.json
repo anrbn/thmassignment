@@ -1,0 +1,17 @@
+{
+  "name": "soc-triage-lab-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline SOC triage lab page with a local code editor and terminal backend.",
+  "scripts": {
+    "postinstall": "node scripts/copy_xterm_assets.js",
+    "prepare:assets": "node scripts/copy_xterm_assets.js",
+    "start": "node terminal_server.js"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "node-pty": "^1.1.0",
+    "ws": "^8.20.0"
+  }
+}

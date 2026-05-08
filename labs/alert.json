@@ -1,0 +1,248 @@
+{
+  "source": "Microsoft Entra ID",
+  "schema": "entra_id_log_samples_v3",
+  "generatedAt": "2026-05-05T04:25:00Z",
+  "logs": [
+    {
+      "id": "entra-log-0001",
+      "timeGenerated": "2026-05-05T02:03:18Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoggedIn",
+      "result": "success",
+      "resultReason": "MFA completed",
+      "userPrincipalName": "megan.bowen@contoso.example",
+      "appDisplayName": "Microsoft 365",
+      "ipAddress": "198.51.100.24",
+      "location": {
+        "city": "Seattle",
+        "countryOrRegion": "US"
+      },
+      "deviceDetail": {
+        "operatingSystem": "Windows",
+        "browser": "Edge",
+        "isManaged": true,
+        "isCompliant": true
+      }
+    },
+    {
+      "id": "entra-log-0002",
+      "timeGenerated": "2026-05-05T02:11:42Z",
+      "logType": "SignInLogs",
+      "category": "ServicePrincipalSignIn",
+      "operationName": "ServicePrincipalLoggedIn",
+      "result": "success",
+      "resultReason": "Client credential flow succeeded",
+      "servicePrincipalName": "inventory-sync-api",
+      "appDisplayName": "Inventory Sync API",
+      "ipAddress": "192.0.2.45",
+      "location": {
+        "city": "Dublin",
+        "countryOrRegion": "IE"
+      }
+    },
+    {
+      "id": "entra-log-0003",
+      "timeGenerated": "2026-05-05T02:22:09Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoginFailed",
+      "result": "failure",
+      "resultReason": "Invalid username or password",
+      "failureCount": 4,
+      "userPrincipalName": "admin.ops@contoso.example",
+      "appDisplayName": "Azure Portal",
+      "ipAddress": "203.0.113.88",
+      "location": {
+        "city": "Frankfurt",
+        "countryOrRegion": "DE"
+      },
+      "deviceDetail": {
+        "operatingSystem": "Windows",
+        "browser": "Chrome",
+        "isManaged": false,
+        "isCompliant": false
+      }
+    },
+    {
+      "id": "entra-log-0004",
+      "timeGenerated": "2026-05-05T02:28:44Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoggedIn",
+      "result": "success",
+      "resultReason": "MFA completed",
+      "userPrincipalName": "admin.ops@contoso.example",
+      "appDisplayName": "Azure Portal",
+      "ipAddress": "203.0.113.88",
+      "location": {
+        "city": "Frankfurt",
+        "countryOrRegion": "DE"
+      },
+      "deviceDetail": {
+        "operatingSystem": "Windows",
+        "browser": "Chrome",
+        "isManaged": false,
+        "isCompliant": false
+      }
+    },
+    {
+      "id": "entra-log-0005",
+      "timeGenerated": "2026-05-05T02:31:06Z",
+      "logType": "AuditLogs",
+      "category": "AuthenticationMethods",
+      "operationName": "Register security info",
+      "result": "success",
+      "resultReason": "Authenticator app registered",
+      "initiatedBy": "admin.ops@contoso.example",
+      "targetResource": "Microsoft Authenticator",
+      "ipAddress": "203.0.113.88",
+      "location": {
+        "city": "Frankfurt",
+        "countryOrRegion": "DE"
+      }
+    },
+    {
+      "id": "entra-log-0006",
+      "timeGenerated": "2026-05-05T02:35:19Z",
+      "logType": "AuditLogs",
+      "category": "RoleManagement",
+      "operationName": "Add member to role",
+      "result": "success",
+      "resultReason": "Member added to role",
+      "initiatedBy": "admin.ops@contoso.example",
+      "targetResource": "Global Administrator",
+      "modifiedProperties": {
+        "addedMember": "backup.automation@contoso.example",
+        "roleName": "Global Administrator"
+      },
+      "ipAddress": "203.0.113.88",
+      "location": {
+        "city": "Frankfurt",
+        "countryOrRegion": "DE"
+      }
+    },
+    {
+      "id": "entra-log-0007",
+      "timeGenerated": "2026-05-05T02:43:37Z",
+      "logType": "AuditLogs",
+      "category": "GroupManagement",
+      "operationName": "Add member to group",
+      "result": "success",
+      "resultReason": "Member added to group",
+      "initiatedBy": "helpdesk.north@contoso.example",
+      "targetResource": "Marketing Announcements",
+      "modifiedProperties": {
+        "addedMember": "adelev@contoso.example",
+        "groupType": "Microsoft 365"
+      },
+      "ipAddress": "198.51.100.63",
+      "location": {
+        "city": "Vancouver",
+        "countryOrRegion": "CA"
+      }
+    },
+    {
+      "id": "entra-log-0008",
+      "timeGenerated": "2026-05-05T02:52:58Z",
+      "logType": "AuditLogs",
+      "category": "UserManagement",
+      "operationName": "Reset user password",
+      "result": "success",
+      "resultReason": "Password reset completed",
+      "initiatedBy": "helpdesk.north@contoso.example",
+      "targetResource": "chris.green@contoso.example",
+      "ipAddress": "198.51.100.63",
+      "location": {
+        "city": "Vancouver",
+        "countryOrRegion": "CA"
+      }
+    },
+    {
+      "id": "entra-log-0009",
+      "timeGenerated": "2026-05-05T03:05:14Z",
+      "logType": "AuditLogs",
+      "category": "ApplicationManagement",
+      "operationName": "Consent to application",
+      "result": "success",
+      "resultReason": "Delegated consent granted",
+      "initiatedBy": "pradeep.gupta@contoso.example",
+      "targetResource": "Project Planner Connector",
+      "modifiedProperties": {
+        "permissions": "User.Read",
+        "consentType": "User"
+      },
+      "ipAddress": "203.0.113.56",
+      "location": {
+        "city": "Bengaluru",
+        "countryOrRegion": "IN"
+      }
+    },
+    {
+      "id": "entra-log-0010",
+      "timeGenerated": "2026-05-05T03:18:33Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoginFailed",
+      "result": "failure",
+      "resultReason": "Password expired",
+      "userPrincipalName": "diego.siciliani@contoso.example",
+      "appDisplayName": "SharePoint Online",
+      "ipAddress": "192.0.2.219",
+      "location": {
+        "city": "Mexico City",
+        "countryOrRegion": "MX"
+      },
+      "deviceDetail": {
+        "operatingSystem": "macOS",
+        "browser": "Safari",
+        "isManaged": true,
+        "isCompliant": true
+      }
+    },
+    {
+      "id": "entra-log-0011",
+      "timeGenerated": "2026-05-05T03:31:07Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoggedIn",
+      "result": "success",
+      "resultReason": "MFA completed",
+      "userPrincipalName": "nina.koch@contoso.example",
+      "appDisplayName": "Microsoft Teams",
+      "ipAddress": "78.128.113.74",
+      "location": {
+        "city": "Sofia",
+        "countryOrRegion": "BG"
+      },
+      "deviceDetail": {
+        "operatingSystem": "Windows",
+        "browser": "Edge",
+        "isManaged": true,
+        "isCompliant": true
+      }
+    },
+    {
+      "id": "entra-log-0012",
+      "timeGenerated": "2026-05-05T03:44:26Z",
+      "logType": "SignInLogs",
+      "category": "UserSignIn",
+      "operationName": "UserLoggedIn",
+      "result": "success",
+      "resultReason": "MFA completed",
+      "userPrincipalName": "sam.rivera@contoso.example",
+      "appDisplayName": "SharePoint Online",
+      "ipAddress": "185.249.74.198",
+      "location": {
+        "city": "London",
+        "countryOrRegion": "GB"
+      },
+      "deviceDetail": {
+        "operatingSystem": "macOS",
+        "browser": "Chrome",
+        "isManaged": true,
+        "isCompliant": true
+      }
+    }
+  ]
+}

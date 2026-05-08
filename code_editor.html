@@ -1,0 +1,2557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Building Agents for Cybersecurity</title>
+  <link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
+  <link rel="stylesheet" href="vendor/codemirror/dracula.min.css">
+  <link rel="stylesheet" href="vendor/xterm/xterm.css">
+  <style>
+    :root {
+      --page: #121a2a;
+      --hero: #121b2b;
+      --panel: #1b263a;
+      --panel-top: #22304a;
+      --line: #31415f;
+      --text: #f4f7fb;
+      --body: #d6e2f4;
+      --muted: #9eacc2;
+      --red: #ff4b5f;
+      --green: #9af22e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1458px, calc(100vw - 48px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 170px;
+      border-bottom: 1px solid #213049;
+      background:
+        radial-gradient(circle at 72% 10%, rgba(0, 178, 220, 0.28), transparent 22%),
+        linear-gradient(90deg, #121b2b 0%, #131c2d 48%, #075d79 100%);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(18, 27, 43, 1) 0%, rgba(18, 27, 43, 0.96) 42%, rgba(18, 27, 43, 0.45) 76%, rgba(18, 27, 43, 0.15) 100%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: 90px;
+      top: 0;
+      width: 760px;
+      height: 190px;
+      background:
+        linear-gradient(30deg, transparent 0 31%, rgba(54, 216, 255, 0.2) 32% 33%, transparent 34%),
+        linear-gradient(150deg, transparent 0 36%, rgba(54, 216, 255, 0.16) 37% 38%, transparent 39%),
+        radial-gradient(circle at 48% 0%, rgba(52, 215, 255, 0.28) 0 18px, transparent 19px),
+        radial-gradient(circle at 62% 46%, rgba(52, 215, 255, 0.2) 0 18px, transparent 19px);
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
+    .hero .container {
+      position: relative;
+      z-index: 1;
+      padding: 34px 0 30px;
+    }
+
+    .room-copy {
+      max-width: 880px;
+    }
+
+    .room-copy h1 {
+      margin: 0 0 4px;
+      font-size: clamp(30px, 4vw, 42px);
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    .room-copy p {
+      margin: 0;
+      color: #fff;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .task-list {
+      padding: 36px 0 80px;
+    }
+
+    .task-card {
+      margin-bottom: 18px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid #263758;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .task-header {
+      width: 100%;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 20px;
+      border: 0;
+      color: #fff;
+      background: var(--panel-top);
+      text-align: left;
+    }
+
+    .task-label {
+      color: var(--red);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #49617f;
+      flex: 0 0 auto;
+    }
+
+    .task-card.done .status-dot {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 12px rgba(154, 242, 46, 0.35);
+    }
+
+    .task-title {
+      flex: 1;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .task-toggle {
+      color: #fff;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .task-content {
+      display: none;
+      padding: 34px 36px 40px;
+      color: var(--body);
+      background: var(--panel);
+      border-left: 4px solid var(--red);
+    }
+
+    .task-card.open .task-content {
+      display: block;
+    }
+
+    .task-content p {
+      margin: 0 0 18px;
+      font-size: 16px;
+    }
+
+    .task-content strong,
+    .task-content a {
+      color: #fff;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 4px;
+    }
+
+    .task-content ul,
+    .task-content ol {
+      margin: 12px 0 26px;
+      padding-left: 44px;
+    }
+
+    .task-content li {
+      margin: 6px 0;
+    }
+
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4,
+    .markdown-body h5,
+    .markdown-body h6 {
+      margin: 32px 0 14px;
+      color: #e4edf9;
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1.25;
+    }
+
+    .markdown-body h2 {
+      padding-top: 18px;
+      border-top: 1px solid #31415f;
+      color: #fff;
+      font-size: 26px;
+    }
+
+    .markdown-body h3 {
+      color: #f0f5ff;
+      font-size: 22px;
+    }
+
+    .markdown-body blockquote {
+      margin: 22px 0;
+      padding: 14px 18px;
+      border-left: 4px solid var(--red);
+      background: #162137;
+      color: #c8d6ea;
+      border-radius: 0 5px 5px 0;
+    }
+
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0;
+      overflow: hidden;
+      border-radius: 5px;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid #354968;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .markdown-body th {
+      color: #fff;
+      background: #22304a;
+    }
+
+    .markdown-body td {
+      background: #172238;
+    }
+
+    .markdown-body code {
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #c8f6bb;
+      background: #111a2d;
+      border: 1px solid #334765;
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    .code-block {
+      margin: 22px 0;
+      border: 1px solid #354968;
+      border-radius: 5px;
+      background: #0d1526;
+      overflow: hidden;
+    }
+
+    .code-label {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: #b7c7df;
+      background: #18243a;
+      border-bottom: 1px solid #354968;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      color: #e8f0fb;
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .code-block code {
+      padding: 0;
+      border: 0;
+      color: inherit;
+      background: transparent;
+      font-size: inherit;
+    }
+
+    .markdown-body img {
+      display: block;
+      max-width: min(720px, 100%);
+      margin: 28px auto;
+      border-radius: 5px;
+      border: 1px solid #354968;
+    }
+
+    .markdown-body figcaption {
+      margin-top: -18px;
+      margin-bottom: 22px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .question-box {
+      margin: 34px 0 24px;
+    }
+
+    .question-box h3 {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin: 0 0 28px;
+      color: var(--red);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .question-box h3::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #31415f;
+    }
+
+    .question-item {
+      margin-bottom: 30px;
+    }
+
+    .question-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .question-item p {
+      margin: 0 0 20px;
+      color: var(--body);
+    }
+
+    .question-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 292px;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .question-row input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #4d5b70;
+      border-radius: 5px;
+      padding: 0 18px;
+      color: #eef4ff;
+      background: #121a2a;
+    }
+
+    .question-row input::placeholder {
+      color: #aeb8c8;
+    }
+
+    .question-row input[readonly] {
+      color: #aeb8c8;
+      background: #596577;
+    }
+
+    .question-row button {
+      min-height: 42px;
+      border: 1px solid var(--green);
+      border-radius: 5px;
+      background: transparent;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .question-feedback {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .complete-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .complete-button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 4px;
+      padding: 0 16px;
+      background: var(--green);
+      color: #071000;
+      font-weight: 800;
+    }
+
+    .complete-button.done {
+      background: #3bb55a;
+      color: #fff;
+    }
+
+
+
+    .editor-launch-row {
+      display: flex;
+      justify-content: flex-start;
+      margin: 28px 0 18px;
+    }
+
+    .editor-launch-button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 5px;
+      padding: 0 18px;
+      background: var(--green);
+      color: #071000;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .editor-launch-button:hover {
+      filter: brightness(1.05);
+    }
+
+    .code-editor-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 50;
+      width: var(--editor-width);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #111827;
+      border-left: 1px solid #31415f;
+      box-shadow: -24px 0 60px rgba(0, 0, 0, 0.36);
+      overflow: hidden;
+      overscroll-behavior: contain;
+      transform: translateX(100%);
+      transition: transform 0.22s ease;
+    }
+
+    .editor-resize-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -8px;
+      z-index: 6;
+      width: 16px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .editor-resize-handle::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 7px;
+      width: 1px;
+      background: #687792;
+      opacity: 0.42;
+      transition: opacity 0.16s ease, background 0.16s ease;
+    }
+
+    .editor-resize-handle:hover::after,
+    .editor-resize-handle:focus-visible::after,
+    body.editor-resizing .editor-resize-handle::after {
+      background: var(--green);
+      opacity: 0.86;
+    }
+
+    html.editor-resizing,
+    body.editor-resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
+
+    body.editor-resizing,
+    body.editor-resizing .code-editor-panel {
+      transition: none;
+    }
+
+    body {
+      --editor-width: min(760px, 48vw);
+      --terminal-height: clamp(320px, 42vh, 520px);
+      transition: padding-right 0.22s ease;
+    }
+
+    body.editor-open {
+      padding-right: var(--editor-width);
+    }
+
+    body.editor-open .container {
+      width: min(1000px, calc(100vw - var(--editor-width) - 48px));
+    }
+
+    body.editor-open .code-editor-panel {
+      transform: translateX(0);
+    }
+
+    body.terminal-only .file-explorer-button,
+    body.terminal-only .editor-file-tabs,
+    body.terminal-only .code-editor-body {
+      display: none;
+    }
+
+    body.terminal-only .code-editor-toolbar {
+      justify-content: flex-end;
+    }
+
+    body.terminal-only .runtime-dock {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    body.terminal-only .terminal-resize-handle {
+      display: none;
+    }
+
+    .code-editor-toolbar {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 12px 0 0;
+      background: #14131d;
+      border-bottom: 1px solid #0f1220;
+    }
+
+    .file-explorer-button {
+      width: 62px;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid #23283a;
+      background: #202131;
+    }
+
+    .folder-icon {
+      position: relative;
+      width: 28px;
+      height: 18px;
+      border: 2px solid #bdc5d5;
+      border-radius: 3px;
+      opacity: 0.86;
+    }
+
+    .folder-icon::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: -8px;
+      width: 13px;
+      height: 7px;
+      border: 2px solid #bdc5d5;
+      border-bottom: 0;
+      border-radius: 3px 3px 0 0;
+      background: #202131;
+    }
+
+    .editor-file-tabs {
+      align-self: stretch;
+      display: flex;
+      min-width: 0;
+    }
+
+    .editor-file-tab {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-right: 1px solid #23283a;
+      padding: 0 20px;
+      color: #f7fbff;
+      background: #14131d;
+      font-weight: 800;
+    }
+
+    .editor-file-tab.active {
+      background: #1e2434;
+    }
+
+    .python-file-dot {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: #f7ce2f;
+    }
+
+    .python-file-dot::after {
+      content: "";
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: #14131d;
+      opacity: 0.8;
+    }
+
+    .code-editor-spacer {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .code-editor-close {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #3b4d6d;
+      border-radius: 5px;
+      margin-left: 8px;
+      background: #171b28;
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .code-editor-body {
+      flex: 1 1 auto;
+      min-height: 220px;
+      overflow: hidden;
+      overscroll-behavior: contain;
+      background: #1e2534;
+    }
+
+    .code-editor-body textarea,
+    .fallback-editor {
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      padding: 18px;
+      color: #eef4ff;
+      background: #1e2534;
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 15px;
+      line-height: 1.6;
+      overscroll-behavior: contain;
+    }
+
+    .CodeMirror {
+      height: 100%;
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 15px;
+      line-height: 1.55;
+      background: #1e2534;
+    }
+
+    .CodeMirror-scroll {
+      overscroll-behavior: contain;
+    }
+
+    .CodeMirror-gutters {
+      border-right: 0;
+      background: #1e2534;
+    }
+
+    .CodeMirror-linenumber {
+      color: #b9c0cf;
+    }
+
+    .runtime-dock {
+      flex: 0 0 var(--terminal-height);
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid #171c29;
+      background: #05070d;
+      min-height: 300px;
+      overflow: hidden;
+    }
+
+    .terminal-resize-handle {
+      flex: 0 0 12px;
+      position: relative;
+      border: 0;
+      border-bottom: 1px solid #171c29;
+      padding: 0;
+      background: #05070d;
+      cursor: row-resize;
+      touch-action: none;
+    }
+
+    .terminal-resize-handle::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 5px;
+      width: 78px;
+      height: 2px;
+      border-radius: 999px;
+      background: #687792;
+      opacity: 0.42;
+      transform: translateX(-50%);
+      transition: opacity 0.16s ease, background 0.16s ease;
+    }
+
+    .terminal-resize-handle:hover::after,
+    .terminal-resize-handle:focus-visible::after,
+    body.terminal-resizing .terminal-resize-handle::after {
+      background: var(--green);
+      opacity: 0.86;
+    }
+
+    html.terminal-resizing,
+    body.terminal-resizing {
+      cursor: row-resize;
+      user-select: none;
+    }
+
+    body.terminal-resizing,
+    body.terminal-resizing .code-editor-panel {
+      transition: none;
+    }
+
+    .terminal-header {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-bottom: 1px solid #171c29;
+      background: #080b13;
+    }
+
+    .terminal-title,
+    .terminal-status {
+      color: #a9b5c8;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .terminal-title {
+      color: #d1d5de;
+    }
+
+    .terminal-status {
+      margin-left: auto;
+    }
+
+    .terminal-status.connected {
+      color: var(--green);
+    }
+
+    .terminal-status.offline,
+    .terminal-status.error {
+      color: #ff8ea1;
+    }
+
+    .terminal-panel {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      padding: 6px;
+      overflow: hidden;
+      background: #05070d;
+    }
+
+    .terminal-surface {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .terminal-panel .xterm {
+      height: 100%;
+    }
+
+    .terminal-panel .xterm-viewport {
+      overscroll-behavior: contain;
+    }
+
+    .load-error {
+      padding: 24px;
+      border: 1px solid #694354;
+      border-radius: 5px;
+      background: #241b2a;
+      color: #ffdce4;
+    }
+
+    .load-error p {
+      margin: 10px 0 0;
+    }
+
+    /* Density pass: keeps the page feeling like browser zoom is at 100%, not 120%. */
+    body {
+      --editor-width: min(720px, 45vw);
+      --terminal-height: clamp(320px, 42vh, 500px);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1380px, calc(100vw - 36px));
+    }
+
+    .hero {
+      min-height: 142px;
+    }
+
+    .hero .container {
+      padding: 26px 0 24px;
+    }
+
+    .room-copy h1 {
+      font-size: clamp(26px, 3.4vw, 36px);
+    }
+
+    .task-list {
+      padding: 28px 0 64px;
+    }
+
+    .task-card {
+      margin-bottom: 14px;
+    }
+
+    .task-header {
+      min-height: 50px;
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    .status-dot {
+      width: 16px;
+      height: 16px;
+    }
+
+    .task-title {
+      font-size: 15px;
+    }
+
+    .task-toggle {
+      font-size: 18px;
+    }
+
+    .task-content {
+      padding: 26px 30px 32px;
+    }
+
+    .task-content p {
+      margin-bottom: 14px;
+      font-size: 15px;
+    }
+
+    .task-content ul,
+    .task-content ol {
+      margin: 10px 0 20px;
+      padding-left: 34px;
+    }
+
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4,
+    .markdown-body h5,
+    .markdown-body h6 {
+      margin: 26px 0 12px;
+    }
+
+    .markdown-body h2 {
+      padding-top: 14px;
+      font-size: 22px;
+    }
+
+    .markdown-body h3 {
+      font-size: 19px;
+    }
+
+    .code-block,
+    .markdown-body table,
+    .markdown-body blockquote {
+      margin: 18px 0;
+    }
+
+    .code-block pre {
+      padding: 13px;
+      font-size: 13px;
+    }
+
+    .question-box {
+      margin: 26px 0 20px;
+    }
+
+    .question-box h3 {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .question-item {
+      margin-bottom: 22px;
+    }
+
+    .question-row {
+      gap: 12px;
+    }
+
+    .question-row input,
+    .question-row button,
+    .complete-button {
+      min-height: 36px;
+    }
+
+    .editor-launch-row {
+      margin: 20px 0 14px;
+    }
+
+    .editor-launch-button {
+      min-height: 38px;
+      padding: 0 15px;
+    }
+
+    body.editor-open .container {
+      width: min(960px, calc(100vw - var(--editor-width) - 36px));
+    }
+
+    .code-editor-toolbar {
+      min-height: 50px;
+    }
+
+    .file-explorer-button {
+      width: 56px;
+    }
+
+    .folder-icon {
+      width: 25px;
+      height: 16px;
+    }
+
+    .editor-file-tab {
+      height: 50px;
+      padding: 0 16px;
+      font-size: 14px;
+    }
+
+    .code-editor-close {
+      width: 28px;
+      height: 28px;
+      font-size: 18px;
+    }
+
+    .code-editor-body {
+      min-height: 190px;
+    }
+
+    .code-editor-body textarea,
+    .fallback-editor,
+    .CodeMirror {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .runtime-dock {
+      flex-basis: var(--terminal-height);
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        width: min(100% - 28px, 1458px);
+      }
+
+      .task-content {
+        padding: 26px 20px 32px;
+      }
+
+      .question-row {
+        grid-template-columns: 1fr;
+      }
+
+      body.editor-open {
+        padding-right: 0;
+      }
+
+      body.editor-open .container {
+        width: min(100% - 28px, 1458px);
+      }
+
+      .code-editor-panel {
+        width: 100vw;
+      }
+
+      .editor-resize-handle {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero" aria-labelledby="room-title">
+    <div class="container">
+      <div class="room-copy">
+        <h1 id="room-title">Building Agents for Cybersecurity</h1>
+        <p>Build an LLM-powered SOC triage agent with ReAct planning, tool calling, and IP reputation checks.</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="task-list" id="tasks">
+    <div class="container" id="task-container">
+      <section class="task-card open">
+        <button class="task-header" type="button">
+          <span class="task-label">Task</span>
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="task-title">Loading thmroom.md</span>
+          <span class="task-toggle" aria-hidden="true">^</span>
+        </button>
+        <div class="task-content markdown-body">
+          <p>Loading room content from <code>thmroom.md</code>...</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="code-editor-panel" id="code-editor-panel" aria-label="Python code editor" aria-hidden="true">
+    <button class="editor-resize-handle" id="editor-resize-handle" type="button" role="separator" aria-label="Resize code editor" aria-orientation="vertical"></button>
+    <div class="code-editor-toolbar">
+      <div class="file-explorer-button" aria-hidden="true">
+        <span class="folder-icon"></span>
+      </div>
+      <div class="editor-file-tabs" id="editor-file-tabs" role="tablist" aria-label="Open Python files">
+        <button class="editor-file-tab active" type="button" role="tab" aria-selected="true">
+          <span class="python-file-dot" aria-hidden="true"></span>
+          <span>soc_script.py</span>
+        </button>
+      </div>
+      <div class="code-editor-spacer"></div>
+      <button class="code-editor-close" id="close-code-editor" type="button" aria-label="Close code editor">×</button>
+    </div>
+    <div class="code-editor-body">
+      <textarea id="python-editor" spellcheck="false">import json
+import sys
+import urllib.request
+
+# STEP 1: Fill in the OLLAMA_CHAT_URL and the OLLAMA_MODEL
+OLLAMA_CHAT_URL = ""
+OLLAMA_MODEL = ""
+
+# STEP 2: The Prompt
+def call_ollama(alert_content):
+    system_prompt = ""
+
+# STEP 3: Fill in required
+    payload = {
+        "model": <CHANGEIT>,
+        "messages": [
+            {
+                "role": "user",
+                "content": system_prompt + "\n\n" + alert_content,
+            }
+        ],
+        "stream": <CHANGEIT>,
+    }
+
+    # STEP 4: Prepare the web request
+
+
+    # STEP 5: Send the request and read the response
+
+
+if __name__ == "__main__":
+    # STEP 6: Grab the file name from the terminal command
+
+
+    # STEP 7: Read the alert file directly
+
+
+    # STEP 8: Call Ollama and print the result</textarea>
+    </div>
+    <div class="runtime-dock">
+      <button class="terminal-resize-handle" id="terminal-resize-handle" type="button" role="separator" aria-label="Resize terminal" aria-orientation="horizontal"></button>
+      <div class="terminal-header">
+        <span class="terminal-title">Terminal</span>
+        <span class="terminal-status offline" id="terminal-status">Backend offline</span>
+      </div>
+      <div class="terminal-panel">
+        <div class="terminal-surface" id="terminal"></div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="vendor/codemirror/codemirror.min.js"></script>
+  <script src="vendor/codemirror/python.min.js"></script>
+  <script src="vendor/codemirror/matchbrackets.min.js"></script>
+  <script src="vendor/xterm/xterm.js"></script>
+  <script src="vendor/xterm/addon-fit.js"></script>
+
+  <script>
+    const SOURCE_FILE = "thmroom.md";
+    const EDITOR_TASKS = [
+      { title: "Building the AI SOC Triage Agent - Part 1", file: "soc_script.py" },
+      { title: "Building the AI SOC Triage Agent - Part 2", file: "fullagent.py" },
+      { title: "Building the AI SOC Triage Agent - Part 3", file: "fullagent.py" }
+    ];
+    const TERMINAL_TASK_TITLES = [
+      "Sending your first API Request",
+      "Where the LLM Falls Short",
+      "Tool Calling With Curl",
+      "Test Tool Calling With Curl"
+    ];
+    const LABS_DIRECTORY = "labs/";
+    const DEFAULT_EDITOR_FILENAME = "soc_script.py";
+    const FALLBACK_EDITOR_FILES = ["soc_script.py", "fullagent.py"];
+    const EDITOR_WIDTH_STORAGE_KEY = "soc-triage-editor-width";
+    const TERMINAL_HEIGHT_STORAGE_KEY = "soc-triage-terminal-height";
+    const BACKEND_SAVE_ENDPOINT = "/api/save-lab-file";
+    const TERMINAL_WEBSOCKET_PATH = "/terminal";
+    const taskContainer = document.getElementById("task-container");
+    let codeEditor = null;
+    let editorFiles = FALLBACK_EDITOR_FILES.slice();
+    let activeEditorFilename = DEFAULT_EDITOR_FILENAME;
+    let editorFileCache = {};
+    let editorFileLoadPromises = {};
+    let editorAutosaveTimer = null;
+    let editorAutosaveSuppressed = false;
+    let editorAutosaveBound = false;
+    let editorDirty = false;
+    let terminal = null;
+    let terminalFitAddon = null;
+    let terminalSocket = null;
+    let terminalConnected = false;
+    let terminalConnecting = false;
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function slugify(value, index) {
+      const slug = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      return slug || "task-" + index;
+    }
+
+    function inlineMarkdown(value) {
+      const codeTokens = [];
+      let text = value.replace(/`([^`]+)`/g, function (_, code) {
+        const token = "@@CODE" + codeTokens.length + "@@";
+        codeTokens.push("<code>" + escapeHtml(code) + "</code>");
+        return token;
+      });
+
+      text = escapeHtml(text)
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+      codeTokens.forEach(function (token, index) {
+        text = text.replace("@@CODE" + index + "@@", token);
+      });
+
+      return text;
+    }
+
+    function renderCodeBlock(language, code) {
+      const lang = (language || "text").trim().toLowerCase() || "text";
+      const className = "language-" + lang.replace(/[^a-z0-9_-]/g, "");
+      return [
+        '<div class="code-block">',
+        '  <div class="code-label">' + escapeHtml(lang) + "</div>",
+        '  <pre><code class="' + className + '">' + escapeHtml(code) + "</code></pre>",
+        "</div>"
+      ].join("");
+    }
+
+    function normalizeAnswer(value) {
+      return value.toLowerCase().replace(/[^a-z0-9.]+/g, " ").trim();
+    }
+
+    function firstAcceptedAnswer(answer) {
+      return (answer || "").split("|")[0].trim();
+    }
+
+    function answerTemplate(answer) {
+      return normalizeAnswer(firstAcceptedAnswer(answer));
+    }
+
+    function answerMask(answer) {
+      const template = answerTemplate(answer);
+
+      if (!template) {
+        return "Enter answer";
+      }
+
+      return template.split(/\s+/).filter(Boolean).map(function (word) {
+        return Array.from(word).map(function () {
+          return "_";
+        }).join(" ");
+      }).join("    ");
+    }
+
+    function parseQuestionDefinition(rawLines) {
+      const promptLines = [];
+      let answer = "";
+      let placeholder = "";
+
+      rawLines.forEach(function (line) {
+        const answerMatch = line.match(/^answer\s*:\s*(.*)$/i);
+        const placeholderMatch = line.match(/^placeholder\s*:\s*(.*)$/i);
+
+        if (answerMatch) {
+          answer = answerMatch[1].trim();
+          return;
+        }
+
+        if (placeholderMatch) {
+          placeholder = placeholderMatch[1].trim();
+          return;
+        }
+
+        promptLines.push(line);
+      });
+
+      const prompt = promptLines.join(" ").trim();
+      return { prompt: prompt, answer: answer, placeholder: placeholder };
+    }
+
+    function renderQuestionItem(question) {
+      const answer = question.answer || "";
+      const isNoAnswer = normalizeAnswer(answer) === "no answer needed";
+      const noAnswerPlaceholder = question.placeholder || "No answer needed";
+      const realAnswerPlaceholder = question.placeholder || answerMask(answer);
+
+      return [
+        '<div class="question-item">',
+        "  <p>" + inlineMarkdown(question.prompt || "Question") + "</p>",
+        '  <div class="question-row">',
+        isNoAnswer
+          ? '    <input type="text" placeholder="' + escapeHtml(noAnswerPlaceholder) + '" readonly>'
+          : '    <input class="answer-mask-input" type="text" placeholder="' + escapeHtml(realAnswerPlaceholder) + '" data-answer-template="' + escapeHtml(answerTemplate(answer)) + '">',
+        '    <button type="button" data-question-answer="' + escapeHtml(answer) + '">Check</button>',
+        "  </div>",
+        '  <div class="question-feedback" aria-live="polite"></div>',
+        "</div>"
+      ].join("\n");
+    }
+
+    function renderQuestionSection(questions) {
+      return [
+        '<div class="question-box">',
+        "  <h3>Answer the questions below</h3>",
+        questions.map(renderQuestionItem).join("\n"),
+        "</div>"
+      ].join("\n");
+    }
+
+
+    function renderLaunchButton(label, dataAttribute) {
+      return [
+        '<div class="editor-launch-row">',
+        '  <button class="editor-launch-button" type="button" ' + dataAttribute + ">" + escapeHtml(label) + "</button>",
+        '</div>'
+      ].join("\n");
+    }
+
+    function renderEditorLaunchButton(filename) {
+      return renderLaunchButton("Open Code", 'data-open-editor="' + escapeHtml(filename || DEFAULT_EDITOR_FILENAME) + '"');
+    }
+
+    function renderTerminalLaunchButton() {
+      return renderLaunchButton("Open Terminal", "data-open-terminal");
+    }
+
+    function matchesTaskTitle(task, titles) {
+      const taskTitle = normalizeAnswer(task.title);
+      return titles.some(function (title) {
+        return normalizeAnswer(title) === taskTitle;
+      });
+    }
+
+    function isEditorTask(task) {
+      return Boolean(editorTaskConfig(task));
+    }
+
+    function isTerminalTask(task) {
+      return matchesTaskTitle(task, TERMINAL_TASK_TITLES);
+    }
+
+    function editorTaskConfig(task) {
+      const taskTitle = normalizeAnswer(task.title);
+      return EDITOR_TASKS.find(function (config) {
+        return normalizeAnswer(config.title) === taskTitle;
+      });
+    }
+
+    function preferredEditorFile(task) {
+      const config = editorTaskConfig(task);
+      return config && isPythonEditorFile(config.file) ? config.file : DEFAULT_EDITOR_FILENAME;
+    }
+
+    function readQuestionBlock(lines, startIndex) {
+      const questionLines = [];
+      let index = startIndex + 1;
+
+      while (index < lines.length && lines[index].trim() !== "::") {
+        questionLines.push(lines[index]);
+        index += 1;
+      }
+
+      return {
+        question: parseQuestionDefinition(questionLines),
+        nextIndex: index + 1
+      };
+    }
+
+    function renderTable(lines, startIndex) {
+      const rows = [];
+      let index = startIndex;
+
+      while (index < lines.length && /^\s*\|.+\|\s*$/.test(lines[index])) {
+        rows.push(lines[index]);
+        index += 1;
+      }
+
+      if (rows.length < 2 || !/^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(rows[1])) {
+        return null;
+      }
+
+      const splitRow = function (row) {
+        return row.trim().replace(/^\||\|$/g, "").split("|").map(function (cell) {
+          return cell.trim();
+        });
+      };
+
+      const headers = splitRow(rows[0]);
+      const bodyRows = rows.slice(2).map(splitRow);
+      const headerHtml = headers.map(function (cell) {
+        return "<th>" + inlineMarkdown(cell) + "</th>";
+      }).join("");
+      const bodyHtml = bodyRows.map(function (row) {
+        return "<tr>" + row.map(function (cell) {
+          return "<td>" + inlineMarkdown(cell) + "</td>";
+        }).join("") + "</tr>";
+      }).join("");
+
+      return {
+        html: "<table><thead><tr>" + headerHtml + "</tr></thead><tbody>" + bodyHtml + "</tbody></table>",
+        nextIndex: index
+      };
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+      const output = [];
+      let paragraph = [];
+      let listType = null;
+      let inCode = false;
+      let codeLanguage = "text";
+      let codeLines = [];
+
+      function flushParagraph() {
+        if (!paragraph.length) {
+          return;
+        }
+        output.push("<p>" + inlineMarkdown(paragraph.join(" ")) + "</p>");
+        paragraph = [];
+      }
+
+      function closeList() {
+        if (!listType) {
+          return;
+        }
+        output.push("</" + listType + ">");
+        listType = null;
+      }
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const trimmed = line.trim();
+
+        if (inCode) {
+          if (/^```/.test(trimmed)) {
+            output.push(renderCodeBlock(codeLanguage, codeLines.join("\n")));
+            inCode = false;
+            codeLanguage = "text";
+            codeLines = [];
+          } else {
+            codeLines.push(line);
+          }
+          continue;
+        }
+
+        const fence = trimmed.match(/^```([a-zA-Z0-9_-]*)\s*$/);
+        if (fence) {
+          flushParagraph();
+          closeList();
+          inCode = true;
+          codeLanguage = fence[1] || "text";
+          continue;
+        }
+
+        if (!trimmed) {
+          flushParagraph();
+          closeList();
+          continue;
+        }
+
+        if (trimmed === "::question") {
+          flushParagraph();
+          closeList();
+
+          const questions = [];
+          let cursor = index;
+
+          while (cursor < lines.length) {
+            while (cursor < lines.length && !lines[cursor].trim()) {
+              cursor += 1;
+            }
+
+            if (cursor >= lines.length || lines[cursor].trim() !== "::question") {
+              break;
+            }
+
+            const parsedQuestion = readQuestionBlock(lines, cursor);
+            questions.push(parsedQuestion.question);
+            cursor = parsedQuestion.nextIndex;
+          }
+
+          output.push(renderQuestionSection(questions));
+          index = cursor - 1;
+          continue;
+        }
+
+        const table = renderTable(lines, index);
+        if (table) {
+          flushParagraph();
+          closeList();
+          output.push(table.html);
+          index = table.nextIndex - 1;
+          continue;
+        }
+
+        const heading = trimmed.match(/^(#{2,6})\s*(.+)$/);
+        if (heading) {
+          flushParagraph();
+          closeList();
+          const level = Math.min(heading[1].length, 6);
+          if (level === 2 && normalizeAnswer(heading[2]) === "questions") {
+            continue;
+          }
+          output.push('<h' + level + ' class="md-heading md-heading-' + level + '">' + inlineMarkdown(heading[2]) + "</h" + level + ">");
+          continue;
+        }
+
+        const image = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)(.*)$/);
+        if (image) {
+          flushParagraph();
+          closeList();
+          const caption = (image[3] || image[1] || "").trim();
+          output.push(
+            '<figure><img src="' + escapeHtml(image[2]) + '" alt="' + escapeHtml(image[1]) + '"><figcaption>' +
+            inlineMarkdown(caption) +
+            "</figcaption></figure>"
+          );
+          continue;
+        }
+
+        const unordered = trimmed.match(/^[-*]\s+(.+)$/);
+        if (unordered) {
+          flushParagraph();
+          if (listType !== "ul") {
+            closeList();
+            output.push("<ul>");
+            listType = "ul";
+          }
+          output.push("<li>" + inlineMarkdown(unordered[1]) + "</li>");
+          continue;
+        }
+
+        const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
+        if (ordered) {
+          flushParagraph();
+          if (listType !== "ol") {
+            closeList();
+            output.push("<ol>");
+            listType = "ol";
+          }
+          output.push("<li>" + inlineMarkdown(ordered[1]) + "</li>");
+          continue;
+        }
+
+        const quote = trimmed.match(/^>\s?(.*)$/);
+        if (quote) {
+          flushParagraph();
+          closeList();
+          output.push("<blockquote>" + inlineMarkdown(quote[1]) + "</blockquote>");
+          continue;
+        }
+
+        paragraph.push(trimmed);
+      }
+
+      if (inCode) {
+        output.push(renderCodeBlock(codeLanguage, codeLines.join("\n")));
+      }
+      flushParagraph();
+      closeList();
+      return output.join("\n");
+    }
+
+    function splitTasks(markdown) {
+      const tasks = [];
+      let current = null;
+      let inCode = false;
+
+      markdown.replace(/\r\n/g, "\n").split("\n").forEach(function (line) {
+        const trimmed = line.trim();
+
+        if (/^```/.test(trimmed)) {
+          inCode = !inCode;
+        }
+
+        const taskHeading = !inCode && line.match(/^#(?!#)\s+(.+)$/);
+        if (taskHeading) {
+          if (current) {
+            tasks.push(current);
+          }
+          current = { title: taskHeading[1].trim(), lines: [] };
+          return;
+        }
+
+        if (current) {
+          current.lines.push(line);
+        }
+      });
+
+      if (current) {
+        tasks.push(current);
+      }
+
+      return tasks;
+    }
+
+    function renderTasks(tasks) {
+      if (!tasks.length) {
+        taskContainer.innerHTML = '<div class="load-error">No tasks found. Add a top-level <code># Heading</code> to <code>' + SOURCE_FILE + "</code>.</div>";
+        return;
+      }
+
+      document.getElementById("room-title").textContent = tasks[0].title;
+
+      taskContainer.innerHTML = tasks.map(function (task, index) {
+        const id = slugify(task.title, index + 1) + "-" + (index + 1);
+        const isEditorSection = isEditorTask(task);
+        const isTerminalSection = isTerminalTask(task);
+        const editorFile = isEditorSection ? preferredEditorFile(task) : "";
+        const isOpen = false;
+        return [
+          '<section class="task-card' + (isOpen ? " open" : "") + '" id="' + id + '">',
+          '  <button class="task-header" type="button" data-toggle="' + id + '">',
+          '    <span class="task-label">Task ' + (index + 1) + "</span>",
+          '    <span class="status-dot" aria-hidden="true"></span>',
+          '    <span class="task-title">' + escapeHtml(task.title) + "</span>",
+          '    <span class="task-toggle" aria-hidden="true">' + (isOpen ? "^" : "v") + "</span>",
+          "  </button>",
+          '  <div class="task-content markdown-body">',
+          isEditorSection ? renderEditorLaunchButton(editorFile) : "",
+          isTerminalSection ? renderTerminalLaunchButton() : "",
+          renderMarkdown(task.lines.join("\n")),
+          '    <div class="complete-row">',
+          '      <button class="complete-button" type="button" data-complete="' + id + '">Complete</button>',
+          "    </div>",
+          "  </div>",
+          "</section>"
+        ].join("\n");
+      }).join("\n");
+
+      bindTaskEvents();
+    }
+
+    function formatAnswerInput(rawValue, template) {
+      const words = (template || "").split(/\s+/).filter(Boolean);
+      const compactValue = rawValue.replace(/\s+/g, "");
+      let cursor = 0;
+
+      return words.map(function (word) {
+        const next = compactValue.slice(cursor, cursor + word.length);
+        cursor += word.length;
+        return next;
+      }).filter(Boolean).join(" ");
+    }
+
+
+    function setEditorValue(value) {
+      const textarea = document.getElementById("python-editor");
+
+      if (codeEditor && codeEditor.setValue) {
+        editorAutosaveSuppressed = true;
+        codeEditor.setValue(value);
+        setTimeout(function () {
+          editorAutosaveSuppressed = false;
+        }, 0);
+        return;
+      }
+
+      if (textarea) {
+        editorAutosaveSuppressed = true;
+        textarea.value = value;
+        setTimeout(function () {
+          editorAutosaveSuppressed = false;
+        }, 0);
+      }
+    }
+
+    function isPythonEditorFile(filename) {
+      return /^[A-Za-z0-9_.-]+\.py$/.test(filename || "");
+    }
+
+    function editorFilePath(filename) {
+      return LABS_DIRECTORY + filename;
+    }
+
+    function uniqueEditorFiles(files) {
+      const seen = {};
+      const cleanFiles = files.filter(function (filename) {
+        if (!isPythonEditorFile(filename) || seen[filename]) {
+          return false;
+        }
+        seen[filename] = true;
+        return true;
+      });
+
+      cleanFiles.sort(function (first, second) {
+        if (first === DEFAULT_EDITOR_FILENAME) {
+          return -1;
+        }
+        if (second === DEFAULT_EDITOR_FILENAME) {
+          return 1;
+        }
+        return first.localeCompare(second);
+      });
+
+      return cleanFiles;
+    }
+
+    function filenameFromHref(href) {
+      const pathOnly = (href || "").split("#")[0].split("?")[0];
+      const filename = pathOnly.split("/").filter(Boolean).pop() || "";
+
+      try {
+        return decodeURIComponent(filename);
+      } catch (error) {
+        return filename;
+      }
+    }
+
+    function renderEditorTabs() {
+      const tabs = document.getElementById("editor-file-tabs");
+
+      if (!tabs) {
+        return;
+      }
+
+      tabs.innerHTML = editorFiles.map(function (filename) {
+        const isActive = filename === activeEditorFilename;
+        return [
+          '<button class="editor-file-tab' + (isActive ? " active" : "") + '"',
+          ' type="button" role="tab" aria-selected="' + (isActive ? "true" : "false") + '"',
+          ' data-editor-file="' + escapeHtml(filename) + '">',
+          '<span class="python-file-dot" aria-hidden="true"></span>',
+          "<span>" + escapeHtml(filename) + "</span>",
+          "</button>"
+        ].join("");
+      }).join("");
+    }
+
+    async function discoverEditorFiles() {
+      try {
+        const response = await fetch(LABS_DIRECTORY, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Could not list " + LABS_DIRECTORY + " (" + response.status + ")");
+        }
+
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const discoveredFiles = Array.from(doc.querySelectorAll("a"))
+          .map(function (link) {
+            return filenameFromHref(link.getAttribute("href") || "");
+          })
+          .filter(isPythonEditorFile);
+
+        const nextFiles = uniqueEditorFiles(discoveredFiles);
+        if (nextFiles.length) {
+          editorFiles = nextFiles;
+        }
+      } catch (error) {
+        editorFiles = uniqueEditorFiles(FALLBACK_EDITOR_FILES);
+      }
+
+      if (!editorFiles.includes(activeEditorFilename)) {
+        activeEditorFilename = editorFiles[0] || DEFAULT_EDITOR_FILENAME;
+      }
+
+      renderEditorTabs();
+    }
+
+    async function loadEditorFile(filename, shouldActivate) {
+      const nextFilename = isPythonEditorFile(filename) ? filename : activeEditorFilename;
+      const shouldSetActive = shouldActivate !== false;
+
+      if (shouldSetActive) {
+        activeEditorFilename = nextFilename;
+        renderEditorTabs();
+      }
+
+      if (Object.prototype.hasOwnProperty.call(editorFileCache, nextFilename)) {
+        if (nextFilename === activeEditorFilename) {
+          setEditorValue(editorFileCache[nextFilename]);
+        }
+        return editorFileCache[nextFilename];
+      }
+
+      if (editorFileLoadPromises[nextFilename]) {
+        return editorFileLoadPromises[nextFilename];
+      }
+
+      const path = editorFilePath(nextFilename);
+      editorFileLoadPromises[nextFilename] = fetch(path, { cache: "no-store" })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Could not load " + path + " (" + response.status + ")");
+          }
+          return response.text();
+        })
+        .then(function (source) {
+          editorFileCache[nextFilename] = source;
+          if (nextFilename === activeEditorFilename) {
+            setEditorValue(source);
+          }
+          return source;
+        })
+        .catch(function (error) {
+          setTerminalStatus("Could not load " + nextFilename, "error");
+          throw error;
+        });
+
+      return editorFileLoadPromises[nextFilename];
+    }
+
+    function selectEditorFile(filename) {
+      if (!isPythonEditorFile(filename)) {
+        return;
+      }
+
+      loadEditorFile(filename, true).catch(function () {});
+    }
+
+    function setTerminalStatus(message, state) {
+      const status = document.getElementById("terminal-status");
+
+      if (!status) {
+        return;
+      }
+
+      status.textContent = message;
+      status.classList.remove("connected", "offline", "error");
+      if (state) {
+        status.classList.add(state);
+      }
+    }
+
+    function terminalDimensions() {
+      return {
+        cols: terminal && terminal.cols ? terminal.cols : 100,
+        rows: terminal && terminal.rows ? terminal.rows : 30
+      };
+    }
+
+    function terminalWebSocketUrl() {
+      const dimensions = terminalDimensions();
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const params = new URLSearchParams({
+        cols: String(dimensions.cols),
+        rows: String(dimensions.rows)
+      });
+      return protocol + "//" + window.location.host + TERMINAL_WEBSOCKET_PATH + "?" + params.toString();
+    }
+
+    function sendTerminalMessage(message) {
+      if (terminalSocket && terminalSocket.readyState === WebSocket.OPEN) {
+        terminalSocket.send(JSON.stringify(message));
+        return true;
+      }
+
+      return false;
+    }
+
+    function resizeBackendTerminal() {
+      if (!terminal || !terminalConnected) {
+        return;
+      }
+
+      sendTerminalMessage({
+        type: "resize",
+        cols: terminal.cols,
+        rows: terminal.rows
+      });
+    }
+
+    function fitTerminal() {
+      if (!terminal || !terminalFitAddon) {
+        return;
+      }
+
+      const terminalPanel = document.querySelector(".terminal-panel");
+      if (!terminalPanel) {
+        return;
+      }
+
+      try {
+        terminalFitAddon.fit();
+        resizeBackendTerminal();
+      } catch (error) {}
+    }
+
+    function connectTerminalSocket() {
+      if (!terminal || terminalConnected || terminalConnecting) {
+        return;
+      }
+
+      if (!window.WebSocket) {
+        setTerminalStatus("No WebSocket", "error");
+        return;
+      }
+
+      terminalConnecting = true;
+      setTerminalStatus("Connecting...", "offline");
+      terminalSocket = new WebSocket(terminalWebSocketUrl());
+
+      terminalSocket.addEventListener("open", function () {
+        terminalConnected = true;
+        terminalConnecting = false;
+        setTerminalStatus("Terminal connected", "connected");
+        resizeBackendTerminal();
+        flushEditorAutosave();
+      });
+
+      terminalSocket.addEventListener("message", function (event) {
+        let message;
+        try {
+          message = JSON.parse(event.data);
+        } catch (error) {
+          return;
+        }
+
+        if (message.type === "ready") {
+          terminal.writeln("Connected to " + message.shell + " in " + message.cwd);
+          return;
+        }
+
+        if (message.type === "output") {
+          terminal.write(message.data || "");
+          return;
+        }
+
+        if (message.type === "exit") {
+          terminal.writeln("");
+          terminal.writeln("Terminal session ended.");
+        }
+      });
+
+      terminalSocket.addEventListener("close", function () {
+        terminalConnected = false;
+        terminalConnecting = false;
+        terminalSocket = null;
+        setTerminalStatus("Backend offline", "offline");
+      });
+
+      terminalSocket.addEventListener("error", function () {
+        terminalConnected = false;
+        terminalConnecting = false;
+        setTerminalStatus("Backend offline", "error");
+      });
+    }
+
+    function initializeTerminal() {
+      const terminalElement = document.getElementById("terminal");
+
+      if (!terminalElement) {
+        return null;
+      }
+
+      if (terminal) {
+        connectTerminalSocket();
+        return terminal;
+      }
+
+      if (!window.Terminal) {
+        setTerminalStatus("xterm missing", "error");
+        return null;
+      }
+
+      terminal = new Terminal({
+        cursorBlink: true,
+        convertEol: true,
+        fontFamily: '"Cascadia Mono", "SFMono-Regular", Consolas, monospace',
+        fontSize: 13,
+        lineHeight: 1.2,
+        scrollback: 3000,
+        theme: {
+          background: "#05070d",
+          foreground: "#f4f7fb",
+          cursor: "#9af22e",
+          selectionBackground: "#31415f"
+        }
+      });
+
+      if (window.FitAddon && window.FitAddon.FitAddon) {
+        terminalFitAddon = new window.FitAddon.FitAddon();
+        terminal.loadAddon(terminalFitAddon);
+      }
+
+      terminal.open(terminalElement);
+      terminal.writeln("Start this page with npm start for a real local terminal.");
+      terminal.onData(function (data) {
+        sendTerminalMessage({ type: "input", data: data });
+      });
+      terminal.onResize(function (dimensions) {
+        sendTerminalMessage({
+          type: "resize",
+          cols: dimensions.cols,
+          rows: dimensions.rows
+        });
+      });
+
+      connectTerminalSocket();
+      return terminal;
+    }
+
+    async function saveActiveEditorFile(code) {
+      const response = await fetch(BACKEND_SAVE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          filename: activeEditorFilename,
+          content: code
+        })
+      });
+      const payload = await response.json().catch(function () {
+        return {};
+      });
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Could not save " + activeEditorFilename + ".");
+      }
+
+      editorFileCache[activeEditorFilename] = code;
+      return payload;
+    }
+
+    function scheduleEditorAutosave() {
+      if (editorAutosaveSuppressed) {
+        return;
+      }
+
+      editorDirty = true;
+      clearTimeout(editorAutosaveTimer);
+      editorAutosaveTimer = setTimeout(flushEditorAutosave, 650);
+    }
+
+    async function flushEditorAutosave() {
+      if (!editorDirty || !terminalConnected || !codeEditor || editorAutosaveSuppressed) {
+        return;
+      }
+
+      try {
+        await saveActiveEditorFile(codeEditor.getValue());
+        editorDirty = false;
+      } catch (error) {
+        setTerminalStatus("Autosave failed", "error");
+      }
+    }
+
+    function bindEditorAutosave(textarea) {
+      if (editorAutosaveBound) {
+        return;
+      }
+
+      editorAutosaveBound = true;
+
+      if (codeEditor && codeEditor.on) {
+        codeEditor.on("change", scheduleEditorAutosave);
+        return;
+      }
+
+      if (textarea) {
+        textarea.addEventListener("input", scheduleEditorAutosave);
+      }
+    }
+
+
+    function initializeCodeEditor() {
+      const textarea = document.getElementById("python-editor");
+
+      if (!textarea) {
+        return null;
+      }
+
+      if (codeEditor) {
+        setTimeout(function () {
+          if (codeEditor.refresh) {
+            codeEditor.refresh();
+          }
+        }, 40);
+        return codeEditor;
+      }
+
+      if (window.CodeMirror) {
+        codeEditor = CodeMirror.fromTextArea(textarea, {
+          mode: "python",
+          theme: "dracula",
+          lineNumbers: true,
+          indentUnit: 4,
+          tabSize: 4,
+          matchBrackets: true,
+          autofocus: true
+        });
+        codeEditor.setSize("100%", "100%");
+      } else {
+        textarea.classList.add("fallback-editor");
+        codeEditor = {
+          getValue: function () {
+            return textarea.value;
+          },
+          setValue: function (value) {
+            textarea.value = value;
+          },
+          refresh: function () {},
+          focus: function () {
+            textarea.focus();
+          }
+        };
+      }
+
+      bindEditorAutosave(textarea);
+      return codeEditor;
+    }
+
+    function openPanel(mode, filename) {
+      const panel = document.getElementById("code-editor-panel");
+      document.documentElement.classList.add("editor-open");
+      document.body.classList.add("editor-open");
+      document.body.classList.toggle("terminal-only", mode === "terminal");
+      panel.setAttribute("aria-hidden", "false");
+
+      initializeTerminal();
+      if (mode === "terminal") {
+        setTimeout(function () {
+          fitTerminal();
+          if (terminal && terminal.focus) {
+            terminal.focus();
+          }
+        }, 260);
+        return;
+      }
+
+      const nextFilename = isPythonEditorFile(filename) ? filename : activeEditorFilename;
+      activeEditorFilename = nextFilename;
+      const editor = initializeCodeEditor();
+      renderEditorTabs();
+      loadEditorFile(nextFilename, true).then(function () {
+        if (editor && editor.refresh) {
+          editor.refresh();
+        }
+      }).catch(function () {});
+      setTimeout(function () {
+        if (editor && editor.refresh) {
+          editor.refresh();
+        }
+        fitTerminal();
+        if (editor && editor.focus) {
+          editor.focus();
+        }
+      }, 260);
+    }
+
+    function openCodeEditor(filename) {
+      openPanel("code", filename);
+    }
+
+    function openTerminalPanel() {
+      openPanel("terminal");
+    }
+
+    function closeCodeEditor() {
+      const panel = document.getElementById("code-editor-panel");
+      document.documentElement.classList.remove("editor-open");
+      document.body.classList.remove("editor-open");
+      document.body.classList.remove("terminal-only");
+      panel.setAttribute("aria-hidden", "true");
+    }
+
+    function editorWidthBounds() {
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1200;
+      const minWidth = Math.min(420, Math.max(320, viewportWidth - 48));
+      const maxWidth = Math.max(minWidth, Math.min(980, viewportWidth - 360));
+      return { min: minWidth, max: maxWidth };
+    }
+
+    function clampEditorWidth(width) {
+      const bounds = editorWidthBounds();
+      return Math.min(bounds.max, Math.max(bounds.min, width));
+    }
+
+    function refreshEditorAfterResize() {
+      if (codeEditor && codeEditor.refresh) {
+        codeEditor.refresh();
+      }
+      fitTerminal();
+    }
+
+    function setEditorWidth(width, shouldPersist) {
+      const clampedWidth = clampEditorWidth(width);
+      document.body.style.setProperty("--editor-width", clampedWidth + "px");
+
+      if (shouldPersist) {
+        try {
+          window.localStorage.setItem(EDITOR_WIDTH_STORAGE_KEY, String(Math.round(clampedWidth)));
+        } catch (error) {}
+      }
+
+      refreshEditorAfterResize();
+    }
+
+    function restoreEditorWidth() {
+      try {
+        const savedWidth = Number(window.localStorage.getItem(EDITOR_WIDTH_STORAGE_KEY));
+        if (savedWidth) {
+          setEditorWidth(savedWidth, false);
+        }
+      } catch (error) {}
+    }
+
+    function terminalHeightBounds() {
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
+      const toolbar = document.querySelector(".code-editor-toolbar");
+      const toolbarHeight = toolbar ? toolbar.getBoundingClientRect().height : 50;
+      const minHeight = Math.min(300, Math.max(190, Math.round(viewportHeight * 0.24)));
+      const maxHeight = Math.max(minHeight, viewportHeight - toolbarHeight - 220);
+      return { min: minHeight, max: maxHeight };
+    }
+
+    function clampTerminalHeight(height) {
+      const bounds = terminalHeightBounds();
+      return Math.min(bounds.max, Math.max(bounds.min, height));
+    }
+
+    function setTerminalHeight(height, shouldPersist) {
+      const clampedHeight = clampTerminalHeight(height);
+      document.body.style.setProperty("--terminal-height", clampedHeight + "px");
+
+      if (shouldPersist) {
+        try {
+          window.localStorage.setItem(TERMINAL_HEIGHT_STORAGE_KEY, String(Math.round(clampedHeight)));
+        } catch (error) {}
+      }
+
+      refreshEditorAfterResize();
+    }
+
+    function restoreTerminalHeight() {
+      try {
+        const savedHeight = Number(window.localStorage.getItem(TERMINAL_HEIGHT_STORAGE_KEY));
+        if (savedHeight) {
+          setTerminalHeight(savedHeight, false);
+        }
+      } catch (error) {}
+    }
+
+    function bindTerminalResize() {
+      const handle = document.getElementById("terminal-resize-handle");
+
+      if (!handle) {
+        return;
+      }
+
+      handle.addEventListener("pointerdown", function (event) {
+        if (document.body.classList.contains("terminal-only")) {
+          return;
+        }
+
+        event.preventDefault();
+        document.documentElement.classList.add("terminal-resizing");
+        document.body.classList.add("terminal-resizing");
+        handle.setPointerCapture(event.pointerId);
+
+        const onPointerMove = function (moveEvent) {
+          setTerminalHeight(window.innerHeight - moveEvent.clientY, false);
+        };
+
+        const onPointerUp = function (upEvent) {
+          setTerminalHeight(window.innerHeight - upEvent.clientY, true);
+          document.documentElement.classList.remove("terminal-resizing");
+          document.body.classList.remove("terminal-resizing");
+          handle.releasePointerCapture(upEvent.pointerId);
+          handle.removeEventListener("pointermove", onPointerMove);
+          handle.removeEventListener("pointerup", onPointerUp);
+          handle.removeEventListener("pointercancel", onPointerUp);
+        };
+
+        handle.addEventListener("pointermove", onPointerMove);
+        handle.addEventListener("pointerup", onPointerUp);
+        handle.addEventListener("pointercancel", onPointerUp);
+      });
+
+      handle.addEventListener("keydown", function (event) {
+        const dock = document.querySelector(".runtime-dock");
+        const currentHeight = dock ? dock.getBoundingClientRect().height : terminalHeightBounds().min;
+        const step = event.shiftKey ? 48 : 16;
+
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+          setTerminalHeight(currentHeight + step, true);
+        }
+
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          setTerminalHeight(currentHeight - step, true);
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        const dock = document.querySelector(".runtime-dock");
+        if (dock && !document.body.classList.contains("terminal-only")) {
+          setTerminalHeight(dock.getBoundingClientRect().height, false);
+        }
+      });
+    }
+
+    function bindEditorResize() {
+      const handle = document.getElementById("editor-resize-handle");
+
+      if (!handle) {
+        return;
+      }
+
+      handle.addEventListener("pointerdown", function (event) {
+        if (window.innerWidth <= 760) {
+          return;
+        }
+
+        event.preventDefault();
+        document.documentElement.classList.add("editor-resizing");
+        document.body.classList.add("editor-resizing");
+        handle.setPointerCapture(event.pointerId);
+
+        const onPointerMove = function (moveEvent) {
+          setEditorWidth(window.innerWidth - moveEvent.clientX, false);
+        };
+
+        const onPointerUp = function (upEvent) {
+          setEditorWidth(window.innerWidth - upEvent.clientX, true);
+          document.documentElement.classList.remove("editor-resizing");
+          document.body.classList.remove("editor-resizing");
+          handle.releasePointerCapture(upEvent.pointerId);
+          handle.removeEventListener("pointermove", onPointerMove);
+          handle.removeEventListener("pointerup", onPointerUp);
+          handle.removeEventListener("pointercancel", onPointerUp);
+        };
+
+        handle.addEventListener("pointermove", onPointerMove);
+        handle.addEventListener("pointerup", onPointerUp);
+        handle.addEventListener("pointercancel", onPointerUp);
+      });
+
+      handle.addEventListener("keydown", function (event) {
+        const currentWidth = document.getElementById("code-editor-panel").getBoundingClientRect().width;
+        const step = event.shiftKey ? 48 : 16;
+
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          setEditorWidth(currentWidth + step, true);
+        }
+
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          setEditorWidth(currentWidth - step, true);
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        const panel = document.getElementById("code-editor-panel");
+        if (panel) {
+          setEditorWidth(panel.getBoundingClientRect().width, false);
+        }
+      });
+    }
+
+    function canScrollElement(element, deltaY, deltaX) {
+      const style = window.getComputedStyle(element);
+      const canScrollY = /(auto|scroll)/.test(style.overflowY) && element.scrollHeight > element.clientHeight;
+      const canScrollX = /(auto|scroll)/.test(style.overflowX) && element.scrollWidth > element.clientWidth;
+
+      if (deltaY < 0 && canScrollY && element.scrollTop > 0) {
+        return true;
+      }
+
+      if (deltaY > 0 && canScrollY && element.scrollTop + element.clientHeight < element.scrollHeight - 1) {
+        return true;
+      }
+
+      if (deltaX < 0 && canScrollX && element.scrollLeft > 0) {
+        return true;
+      }
+
+      if (deltaX > 0 && canScrollX && element.scrollLeft + element.clientWidth < element.scrollWidth - 1) {
+        return true;
+      }
+
+      return false;
+    }
+
+    function findEditorScrollTarget(target, panel, deltaY, deltaX) {
+      let current = target;
+
+      while (current && current !== panel) {
+        if (current.nodeType === 1 && canScrollElement(current, deltaY, deltaX)) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+
+      return null;
+    }
+
+    function scrollMainEditor(panel, deltaY, deltaX) {
+      const scroller = panel.querySelector(".CodeMirror-scroll") || panel.querySelector(".fallback-editor");
+
+      if (!scroller) {
+        return false;
+      }
+
+      const beforeTop = scroller.scrollTop;
+      const beforeLeft = scroller.scrollLeft;
+      scroller.scrollTop += deltaY;
+      scroller.scrollLeft += deltaX;
+
+      return scroller.scrollTop !== beforeTop || scroller.scrollLeft !== beforeLeft;
+    }
+
+    function containEditorWheel(event) {
+      const panel = document.getElementById("code-editor-panel");
+
+      if (!panel || !panel.contains(event.target)) {
+        return;
+      }
+
+      event.stopPropagation();
+
+      if (findEditorScrollTarget(event.target, panel, event.deltaY, event.deltaX)) {
+        return;
+      }
+
+      scrollMainEditor(panel, event.deltaY, event.deltaX);
+      event.preventDefault();
+    }
+
+    function bindEditorScrollContainment() {
+      const panel = document.getElementById("code-editor-panel");
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+
+      if (!panel) {
+        return;
+      }
+
+      panel.addEventListener("wheel", containEditorWheel, { passive: false });
+      panel.addEventListener("touchstart", function (event) {
+        if (event.touches.length === 1) {
+          lastTouchX = event.touches[0].clientX;
+          lastTouchY = event.touches[0].clientY;
+        }
+      }, { passive: true });
+      panel.addEventListener("touchmove", function (event) {
+        if (event.touches.length !== 1) {
+          return;
+        }
+
+        const nextTouchX = event.touches[0].clientX;
+        const nextTouchY = event.touches[0].clientY;
+        const deltaX = lastTouchX - nextTouchX;
+        const deltaY = lastTouchY - nextTouchY;
+        lastTouchX = nextTouchX;
+        lastTouchY = nextTouchY;
+        event.stopPropagation();
+
+        if (findEditorScrollTarget(event.target, panel, deltaY, deltaX)) {
+          return;
+        }
+
+        scrollMainEditor(panel, deltaY, deltaX);
+        event.preventDefault();
+      }, { passive: false });
+    }
+
+    function bindCodeEditorEvents() {
+      const closeButton = document.getElementById("close-code-editor");
+      const fileTabs = document.getElementById("editor-file-tabs");
+
+      bindEditorResize();
+      bindTerminalResize();
+      bindEditorScrollContainment();
+
+      if (closeButton) {
+        closeButton.addEventListener("click", closeCodeEditor);
+      }
+
+      if (fileTabs) {
+        fileTabs.addEventListener("click", function (event) {
+          const tabButton = event.target.closest("[data-editor-file]");
+          if (tabButton) {
+            selectEditorFile(tabButton.dataset.editorFile || "");
+          }
+        });
+      }
+    }
+
+    function bindMaskedInputs() {
+      document.querySelectorAll(".answer-mask-input").forEach(function (input) {
+        input.addEventListener("input", function () {
+          const formatted = formatAnswerInput(input.value, input.dataset.answerTemplate || "");
+          input.value = formatted;
+        });
+      });
+    }
+
+    function bindTaskEvents() {
+      bindMaskedInputs();
+
+      document.querySelectorAll("[data-open-editor]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          openCodeEditor(button.dataset.openEditor || DEFAULT_EDITOR_FILENAME);
+        });
+      });
+
+      document.querySelectorAll("[data-open-terminal]").forEach(function (button) {
+        button.addEventListener("click", openTerminalPanel);
+      });
+
+      document.querySelectorAll("[data-toggle]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const card = document.getElementById(button.dataset.toggle);
+          const isOpen = card.classList.toggle("open");
+          button.querySelector(".task-toggle").textContent = isOpen ? "^" : "v";
+        });
+      });
+
+      document.querySelectorAll("[data-complete]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const card = document.getElementById(button.dataset.complete);
+          const isDone = card.classList.toggle("done");
+          button.classList.toggle("done", isDone);
+          button.textContent = isDone ? "Completed" : "Complete";
+        });
+      });
+
+      document.querySelectorAll("[data-question-answer]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const item = button.closest(".question-item");
+          const input = item.querySelector("input");
+          const feedback = item.querySelector(".question-feedback");
+          const expected = button.dataset.questionAnswer || "";
+
+          if (normalizeAnswer(expected) === "no answer needed") {
+            feedback.textContent = "Correct.";
+            feedback.style.color = "var(--green)";
+            return;
+          }
+
+          const acceptedAnswers = expected.split("|").map(normalizeAnswer);
+          const userAnswer = input.value;
+
+          if (acceptedAnswers.includes(normalizeAnswer(userAnswer))) {
+            feedback.textContent = "Correct.";
+            feedback.style.color = "var(--green)";
+          } else {
+            feedback.textContent = "Not quite. Try again.";
+            feedback.style.color = "var(--red)";
+          }
+        });
+      });
+    }
+
+    async function loadRoom() {
+      try {
+        const response = await fetch(SOURCE_FILE, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Could not load " + SOURCE_FILE + " (" + response.status + ")");
+        }
+        const markdown = await response.text();
+        renderTasks(splitTasks(markdown));
+      } catch (error) {
+        taskContainer.innerHTML = [
+          '<div class="load-error">',
+          "<strong>Could not load <code>" + SOURCE_FILE + "</code>.</strong>",
+          "<p>Open this page through a local web server so the browser can fetch the markdown file.</p>",
+          "<p>" + escapeHtml(error.message) + "</p>",
+          "</div>"
+        ].join("");
+      }
+    }
+
+    restoreEditorWidth();
+    restoreTerminalHeight();
+    bindCodeEditorEvents();
+    discoverEditorFiles().then(function () {
+      return loadEditorFile(activeEditorFilename, true);
+    }).catch(function () {});
+    loadRoom();
+  </script>
+</body>
+</html>
