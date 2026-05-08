@@ -41,7 +41,7 @@ By the end of this room, you should be able to:
 
 - Explain the difference between an agent, an AI-powered agent, and an LLM-powered agent.
 - Send requests to a local LLM through the Ollama API using `curl`.
-- Compare how different LLM sizes can affect SOC alert analysis.
+- Compare how different LLM sizes can affect response.
 - Understand Tool Calling, Tool Defination, ReAct Loop.
 - Build a simple ReAct loop that lets the LLM reason, request an IP reputation check, observe the result, and produce a final SOC triage summary.
 
