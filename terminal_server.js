@@ -476,7 +476,7 @@ function terminalBlockReason(line) {
     return "parent-directory paths are blocked; this terminal is restricted to labs.";
   }
 
-  if (/[a-z]:[\\/]/i.test(normalized) || /(^|[\s"'`])~([\\/]|$)/.test(normalized) || /(^|[\s"'`])\/(?!\/)/.test(normalized)) {
+  if (/(^|[\s"'`])[a-z]:[\\/]/i.test(normalized) || /(^|[\s"'`])~([\\/]|$)/.test(normalized) || /(^|[\s"'`])\/(?!\/)/.test(normalized)) {
     return "absolute filesystem paths are blocked; use files inside labs only.";
   }
 
