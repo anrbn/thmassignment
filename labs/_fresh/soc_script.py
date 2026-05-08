@@ -8,7 +8,7 @@ OLLAMA_MODEL = ""
 
 # STEP 2: The Prompt
 def call_ollama(alert_content):
-    system_prompt = ""
+    system_prompt =
 
 # STEP 3: Fill in required 
     payload = {
