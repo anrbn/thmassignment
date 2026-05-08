@@ -17,5 +17,8 @@ npm start
 ```
 cd thmassignment/labs/mock
 python3 mockabusedb.py
+```
+```
+cd thmassignment/labs/mock
 python3 mockllm.py
 ```
