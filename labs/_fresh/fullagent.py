@@ -28,7 +28,7 @@ def call_ollama(messages):
         return json.loads(response.read().decode("utf-8"))
 
 def run_react_loop(alert_content):
-    system_prompt = ""
+    system_prompt = 
 
     messages = [
         {
