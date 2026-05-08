@@ -511,13 +511,13 @@ Inside `call_ollama()`, find the empty `system_prompt` value:
 
 ```python
 def call_ollama(alert_content):
-    system_prompt = ""
+    system_prompt =
 ```
 
 This is where we will add our prompt.
 
 ```text
-You are a SOC Triage Assistant. Analyze the provided JSON alert. Return a clear triage summary in JSON format with these fields: Log Id, Severity Guess, Meaning, Suggested Next Step.
+"You are a SOC Triage Assistant. Analyze the provided JSON alert. Return a clear triage summary in JSON format with these fields: Log Id, Severity Guess, Meaning, Suggested Next Step."
 ```
 
 This prompt gives the LLM a role and tells it what format to return. In the next step, we will combine this prompt with the actual alert content.
