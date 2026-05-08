@@ -1040,13 +1040,8 @@ The next part of the function creates the first message we will send to the LLM:
 
 The `messages` list is the conversation history we send to the LLM. This first message contains two things:
 
-```text
-system_prompt:
-    The instruction that tells the LLM how to behave.
-
-alert_content:
-    The actual contents of alert.json.
-```
+- system_prompt: The instruction that tells the LLM how to behave.
+- alert_content: The actual contents of alert.json.
 
 This line combines both parts:
 
