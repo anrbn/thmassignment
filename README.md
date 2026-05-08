@@ -19,8 +19,3 @@ cd labs/mock
 python3 mockabusedb.py
 python3 mockllm.py
 ```
-
-# Notes
-```
-
-```
