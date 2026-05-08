@@ -1,6 +1,5 @@
 ```
 git clone https://github.com/anrbn/thmassignment.git
-cd thmassignment
 ```
 
 
@@ -8,6 +7,7 @@ cd thmassignment
 
 ## 1. Run the THM Mock Webpage
 ```
+cd thmassignment
 npm install
 npm start
 ```
@@ -15,7 +15,7 @@ npm start
 ## 2. Run the Mock APIs (AbuseDB & LLM)
 
 ```
-cd labs/mock
+cd thmassignment/labs/mock
 python3 mockabusedb.py
 python3 mockllm.py
 ```
