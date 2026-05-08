@@ -41,7 +41,7 @@ By the end of this room, you should be able to:
 
 - Explain the difference between an agent, an AI-powered agent, and an LLM-powered agent.
 - Send requests to a local LLM through the Ollama API using `curl`.
-- Compare how different LLM sizes can affect response.
+- Compare how different LLM sizes can affect SOC alert analysis.
 - Understand Tool Calling, Tool Defination, ReAct Loop.
 - Build a simple ReAct loop that lets the LLM reason, request an IP reputation check, observe the result, and produce a final SOC triage summary.
 
@@ -511,12 +511,12 @@ Inside `call_ollama()`, find the empty `system_prompt` value:
 
 ```python
 def call_ollama(alert_content):
-    system_prompt =
+    system_prompt = 
 ```
 
 This is where we will add our prompt.
 
-```text
+```text 
 "You are a SOC Triage Assistant. Analyze the provided JSON alert. Return a clear triage summary in JSON format with these fields: Log Id, Severity Guess, Meaning, Suggested Next Step."
 ```
 
@@ -912,14 +912,7 @@ The earlier script sent the alert to the LLM and received one answer. This new s
 
 You do not need to write the whole script from scratch. The starter file already contains the imports, API URLs, and most of the helper code. We will paste the missing pieces one step at a time and explain what each piece does.
 
-### Step 1: Open the Full Agent Starter
-
-Open the starter file:
-
-```bash
-cd labs
-nano fullagent.py
-```
+### Step 1: The Imports
 
 At the top, you should see these imports:
 
